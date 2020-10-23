@@ -63,7 +63,7 @@ fn draw_menu(options: &[&str], selected: usize) -> Result<()> {
         })
         .collect::<String>();
 
-    write!(stdout, "{}{}{}", Save, menu, Restore,);
+    write!(stdout, "{}{}{}", Save, menu, Restore,)?;
 
     // Show the output on the screen
     stdout.flush()?;

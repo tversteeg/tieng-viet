@@ -1,7 +1,7 @@
 mod gui;
 
 use anyhow::Result;
-use std::io::{stdin, stdout, Write};
+use std::io::{stdout, Write};
 use termion::{
     clear::All,
     cursor::{Goto, Hide, Show},
@@ -27,7 +27,7 @@ fn main() -> Result<()> {
     stdout.flush()?;
 
     // Initial selection menu
-    let selected = gui::menu(&["Start", "Help", "Exit"])?;
+    let _selected = gui::menu(&["Start", "Help", "Exit"])?;
 
     // Switch back to the main screen
     write!(stdout, "{}{}", ToMainScreen, Show)?;
