@@ -1,3 +1,6 @@
+// Use the new split_once function for strings
+#![feature(str_split_once)]
+
 mod grammar;
 mod gui;
 
