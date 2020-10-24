@@ -8,7 +8,7 @@ use termion::{
 };
 
 /// Draw a menu from an array of options, and return the index selected.
-pub fn menu(options: &[&str]) -> Result<usize> {
+pub fn menu(options: &[&str]) -> Result<Option<usize>> {
     let mut selected = 0;
 
     draw_menu(options, selected)?;
@@ -31,8 +31,9 @@ pub fn menu(options: &[&str]) -> Result<usize> {
                 }
             }
             Key::Char('\n') => {
-                return Ok(selected);
+                return Ok(Some(selected));
             }
+            Key::Ctrl('c') => return Ok(None),
             _ => (),
         }
 
