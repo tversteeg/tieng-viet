@@ -1,3 +1,4 @@
+mod grammar;
 mod gui;
 
 use anyhow::Result;
