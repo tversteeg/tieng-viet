@@ -7,28 +7,62 @@ use crate::grammar::defaults_parser;
 pub struct Word {
     /// The actual word as a string.
     content: String,
+    /// Rough translation of the word in English.
+    meaning: String,
     /// How this word is classified.
     class: Class,
 }
 
 impl Word {
     /// Parse the included text files and generate a list of words from that.
-    pub fn defaults() -> Vec<Word> {
+    pub fn defaults() -> impl Iterator<Item = Word> {
         // Parse the classifiers and add them
         defaults_parser::parse_str(include_str!("../classifiers.txt"))
             .map(|line| {
-                // Split on the first : symbol of the line and
-                let (classifier, description) = line
+                // Split on the first : symbol of the line
+                let (classifier, meaning) = line
                     .split_once(":")
                     .expect(&format!("Symbol ':' not found on line:\n\t{}", line));
 
                 // Create a word from the parsed line
                 Word {
                     content: classifier.to_string(),
-                    class: Class::ClassifierNoun(ClassifierNoun::new(description.trim())),
+                    meaning: meaning.trim().to_string(),
+                    class: Class::ClassifierNoun(ClassifierNoun {}),
                 }
             })
-            .collect()
+            // Parse the proper nouns and add them
+            .chain(
+                defaults_parser::parse_str(include_str!("../proper_nouns.txt")).map(|line| {
+                    // Split on the first : symbol of the line
+                    let (noun, meaning) = line
+                        .split_once(":")
+                        .expect(&format!("Symbol ':' not found on line:\n\t{}", line));
+
+                    // Create a word from the parsed line
+                    Word {
+                        content: noun.to_string(),
+                        meaning: meaning.trim().to_string(),
+                        class: Class::ProperNoun(ProperNoun {}),
+                    }
+                }),
+            )
+            // Parse the verbs and add them
+            .chain(
+                defaults_parser::parse_str(include_str!("../verbs.txt")).map(|line| {
+                    // Split on the first : symbol of the line
+                    let (verb, meaning) = line
+                        .split_once(":")
+                        .expect(&format!("Symbol ':' not found on line:\n\t{}", line));
+
+                    // Create a word from the parsed line
+                    Word {
+                        content: verb.to_string(),
+                        meaning: meaning.trim().to_string(),
+                        class: Class::Verb(Verb {}),
+                    }
+                }),
+            )
     }
 }
 
@@ -40,15 +74,13 @@ impl Word {
 #[derive(Debug, Clone, PartialEq, Hash)]
 pub enum Class {
     /// **Ý**: Italy.
-    ProperNoun,
+    ProperNoun(ProperNoun),
     /// **Gái**: Girl.
     CommonNoun(CommonNoun),
     /// Ba **chiếc** áo dài: Three (sets of) áo dài.
     ClassifierNoun(ClassifierNoun),
     /// Tôi **đi**: I go.
-    ///
-    /// See: https://yourvietnamese.com/learn-vietnamese/vietnamese-verbs/
-    Verb,
+    Verb(Verb),
     Adjective,
     Adverb,
     Pronoun,
@@ -58,6 +90,14 @@ pub enum Class {
     /// Ngày **kia**, ngày **kìa**, ngày **kía**, ngày **kịa**, ngày **kĩa**: On and on into the future.
     Demonstrative(Demonstrative),
 }
+
+/// Action, occurance or state of being.
+///
+/// Tôi **đi**: I go.
+///
+/// See: https://yourvietnamese.com/learn-vietnamese/vietnamese-verbs/
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+pub struct Verb {}
 
 /// Common noun subclasses.
 ///
@@ -75,6 +115,14 @@ pub enum CommonNoun {
     Abstract,
 }
 
+/// Usually names.
+///
+/// **Ý**: Italy.
+///
+/// See: https://en.wikipedia.org/wiki/Vietnamese_grammar#Nouns_and_noun_phrases
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+pub struct ProperNoun {}
+
 /// Classify a noun depending on the type of it's referent.
 ///
 /// - Ba **chiếc** áo dài: Three (sets of) áo dài.
@@ -84,25 +132,11 @@ pub enum CommonNoun {
 /// - https://en.wikipedia.org/wiki/Vietnamese_grammar#Classifier_position
 /// - https://en.wikipedia.org/wiki/Classifier_(linguistics)
 #[derive(Debug, Clone, PartialEq, Hash)]
-pub struct ClassifierNoun {
-    /// Describing what type of nouns this classifies.
-    description: String,
-}
-
-impl ClassifierNoun {
-    pub fn new<S>(description: S) -> Self
-    where
-        S: Into<String>,
-    {
-        Self {
-            description: description.into(),
-        }
-    }
-}
+pub struct ClassifierNoun {}
 
 /// Noun modifier.
 ///
-/// **Đây** đi chợ, **đấy** có đi không: I'm going to the market, what about you
+/// **Đây** đi chợ, **đấy** có đi không: I'm going to the market, what about you?
 ///
 /// See: https://en.wikipedia.org/wiki/Vietnamese_grammar#Demonstratives
 #[derive(Debug, Clone, PartialEq, Hash)]
@@ -115,9 +149,10 @@ mod tests {
 
     #[test]
     fn test_defaults() -> Result<()> {
-        let default_words = Word::defaults();
+        let mut default_words = Word::defaults();
 
-        assert!(default_words.len() > 0);
+        // Ensure there are default words
+        assert!(default_words.next().is_some());
 
         Ok(())
     }

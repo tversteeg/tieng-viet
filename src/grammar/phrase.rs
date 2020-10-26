@@ -10,8 +10,12 @@ pub struct NounPhrase {
 
 impl NounPhrase {
     /// Combinations of classes that are allowed as a noun phrase.
-    pub fn allowed_structures() -> impl Iterator<Item = Vec<Class>> {
-        defaults_parser::parse_str(include_str!("../noun_phrases.txt")).map(|line| vec![])
+    pub fn allowed_structures() -> impl Iterator<Item = Vec<String>> {
+        defaults_parser::parse_str(include_str!("../noun_phrases.txt")).map(|line| {
+            line.split("+")
+                .map(|r#type| r#type.trim().to_string())
+                .collect()
+        })
     }
 }
 
