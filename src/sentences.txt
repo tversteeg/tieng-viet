@@ -1,0 +1,4 @@
+# Allowed sentence structures:
+# NOUN, VERB
+
+NOUN + VERB

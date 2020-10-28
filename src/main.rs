@@ -5,6 +5,7 @@ mod grammar;
 mod gui;
 
 use anyhow::Result;
+use grammar::{sentence::Sentence, Generate};
 use std::io::{stdout, Write};
 use termion::{
     clear::All,
@@ -29,6 +30,14 @@ fn main() -> Result<()> {
 
     // Make the output appear
     stdout.flush()?;
+
+    // Write a random sentence.
+    let mut rng = rand::thread_rng();
+    let words = Sentence::generate(&mut rng)?;
+    words.into_iter().for_each(|word| {
+        write!(stdout, "{} ", word.to_string());
+    });
+    write!(stdout, "\r\n");
 
     // Initial selection menu
     let _selected = gui::menu(&["Start", "Help", "Exit"])?;

@@ -1,4 +1,5 @@
 use crate::grammar::defaults_parser;
+use std::fmt::Display;
 
 /// A single word.
 ///
@@ -63,6 +64,12 @@ impl Word {
                     }
                 }),
             )
+    }
+}
+
+impl Display for Word {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.content)
     }
 }
 

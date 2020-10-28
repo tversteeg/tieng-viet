@@ -1,0 +1,6 @@
+# Allowed grammatical structures:
+# VERB, NOUN
+#
+# All verb phrases must contain a verb.
+
+VERB + NOUN

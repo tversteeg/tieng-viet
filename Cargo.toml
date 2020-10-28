@@ -8,6 +8,7 @@ edition = "2018"
 
 [dependencies]
 anyhow = "1.0.33"
+rand = "0.7.3"
 termion = "1.5.5"
 
 [dev-dependencies]
