@@ -1,16 +1,1 @@
-cái: used for most inanimate objects
-chiếc: almost similar to cái, usually more connotative (e.g. when referring to a cute object, chiếc might be more suitable than cái)
-con: usually for animals and children, but can be used to describe some non-living objects that are associated with motion
-người: used for people except infants
-bài: used for compositions like songs, drawings, poems, essays, etc.
-câu: sentential constructs (verses, lyrics, statements, quotes, etc.)
-cây: used for stick-like objects (plants, guns, canes, etc.)
-chuyện: a general topic, matter, or business
-lá: smaller sheets of paper (letters, playing cards)
-tòa: buildings of authority: courts, halls, "ivory towers".
-quả: used for globular objects (the Earth, fruits)
-trái: used for globular objects (the Earth, fruits)
-quyển: used for book-like objects (books, journals, etc.)
-cuốn: used for book-like objects (books, journals, etc.)
-tờ: sheets and other thin objects made of paper (newspapers, papers, calendars, etc.)
-việc: an event or an ongoing process
+chiếc: sets of

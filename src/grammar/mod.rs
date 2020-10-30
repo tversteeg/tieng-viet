@@ -15,25 +15,25 @@ pub trait Generate {
     /// Get a list of allowed structures from a txt source file.
     fn allowed_structures() -> Box<dyn Iterator<Item = Self::StructureItem>>;
 
-    /// Get a list of words generated from a selected structure.
-    fn words_from_structure<R>(
-        &self,
+    /// Get a list of default words generated from a chosen structure.
+    fn default_words<'a, R>(
+        rng: &'a mut R,
         structure: Self::StructureItem,
-        rng: &mut R,
-    ) -> Box<dyn Iterator<Item = Word>>
+    ) -> Result<Box<dyn Iterator<Item = Word>>>
     where
         R: Rng;
 
     /// Generate a sentence from the allowed structures.
-    fn generate<R>(rng: &mut R) -> Result<Vec<Word>>
+    fn generate<'a, R>(rng: &'a mut R) -> Result<Box<dyn Iterator<Item = Word>>>
     where
         R: Rng,
     {
         // Select a random structure.
-        Self::allowed_structures()
+        let structure = Self::allowed_structures()
             .choose(rng)
             .ok_or(anyhow!("Could not get random structure for sentence"))?;
 
-        todo!()
+        // Get the default words from the structure.
+        Self::default_words(rng, structure)
     }
 }

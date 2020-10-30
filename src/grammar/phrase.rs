@@ -1,4 +1,5 @@
-use crate::grammar::{defaults_parser, word::Word, Generate};
+use crate::grammar::{defaults_parser, word::*, Generate};
+use anyhow::{anyhow, Result};
 use rand::Rng;
 
 /// A phrase with a noun as it's head.
@@ -23,15 +24,32 @@ impl Generate for NounPhrase {
         )
     }
 
-    fn words_from_structure<R>(
-        &self,
+    fn default_words<'a, R>(
+        rng: &'a mut R,
         structure: Self::StructureItem,
-        rng: &mut R,
-    ) -> Box<dyn Iterator<Item = Word>>
+    ) -> Result<Box<dyn Iterator<Item = Word>>>
     where
         R: Rng,
     {
-        todo!()
+        Ok(Box::new(
+            structure
+                .into_iter()
+                // Loop over all items in the structure and map them to the sub-structures
+                .map(|item| match item.to_uppercase().as_str() {
+                    "DEMONSTRATIVE" => {
+                        Word::random_default(rng, Class::Demonstrative(Demonstrative::default()))
+                    }
+                    "CLASSIFIER" => {
+                        Word::random_default(rng, Class::ClassifierNoun(ClassifierNoun::default()))
+                    }
+                    "HEAD" => Word::random_default(rng, Class::ProperNoun(ProperNoun::default())),
+                    _ => Err(anyhow!("Unrecognized structure item {}", item)),
+                })
+                // Collect the vector so the random number generator is consumed.
+                // TODO: bind the lifetime of the box to the lifetime of the RNG.
+                .collect::<Result<Vec<_>>>()?
+                .into_iter(),
+        ))
     }
 }
 
@@ -55,15 +73,31 @@ impl Generate for VerbPhrase {
         )
     }
 
-    fn words_from_structure<R>(
-        &self,
+    fn default_words<'a, R>(
+        rng: &'a mut R,
         structure: Self::StructureItem,
-        rng: &mut R,
-    ) -> Box<dyn Iterator<Item = Word>>
+    ) -> Result<Box<dyn Iterator<Item = Word>>>
     where
         R: Rng,
     {
-        todo!()
+        Ok(Box::new(
+            structure
+                .into_iter()
+                // Loop over all items in the structure and map them to the sub-structures
+                .map(|item| match item.to_uppercase().as_str() {
+                    "VERB" => Ok(vec![Word::random_default(
+                        rng,
+                        Class::Verb(Verb::default()),
+                    )?]),
+                    "NOUN" => Ok(NounPhrase::generate(rng)?.collect()),
+                    _ => Err(anyhow!("Unrecognized structure item {}", item)),
+                })
+                // Collect the vector so the random number generator is consumed.
+                // TODO: bind the lifetime of the box to the lifetime of the RNG.
+                .collect::<Result<Vec<_>>>()?
+                .into_iter()
+                .flatten(),
+        ))
     }
 }
 

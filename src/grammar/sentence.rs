@@ -4,6 +4,7 @@ use crate::grammar::{
     word::Word,
     Generate,
 };
+use anyhow::{anyhow, Result};
 use rand::Rng;
 
 /// A whole grammatical sentent.
@@ -23,25 +24,28 @@ impl Generate for Sentence {
         )
     }
 
-    fn words_from_structure<R>(
-        &self,
-        structure: Self::StructureItem,
-        rng: &mut R,
-    ) -> Box<dyn Iterator<Item = Word>>
+    fn default_words<'a, R>(
+        rng: &'a mut R,
+        structure: Vec<String>,
+    ) -> Result<Box<dyn Iterator<Item = Word>>>
     where
         R: Rng,
     {
-        Box::new(
+        Ok(Box::new(
             structure
                 .into_iter()
+                // Loop over all items in the structure and map them to the sub-structures
                 .map(|item| match item.to_uppercase().as_str() {
-                    "NOUN" => NounPhrase::generate(rng)
-                        .expect("Could not generate nounphrase for sentence")
-                        .into_iter(),
-                    _ => unimplemented!(),
+                    "NOUN" => NounPhrase::generate(rng),
+                    "VERB" => VerbPhrase::generate(rng),
+                    _ => Err(anyhow!("Unrecognized structure item {}", item)),
                 })
+                // Collect the vector so the random number generator is consumed.
+                // TODO: bind the lifetime of the box to the lifetime of the RNG.
+                .collect::<Result<Vec<_>>>()?
+                .into_iter()
                 .flatten(),
-        )
+        ))
     }
 }
 

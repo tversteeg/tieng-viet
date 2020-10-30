@@ -1,4 +1,6 @@
 use crate::grammar::defaults_parser;
+use anyhow::{anyhow, Result};
+use rand::{seq::IteratorRandom, Rng};
 use std::fmt::Display;
 
 /// A single word.
@@ -64,6 +66,45 @@ impl Word {
                     }
                 }),
             )
+            // Parse the demonstratives and add them
+            .chain(
+                defaults_parser::parse_str(include_str!("../demonstratives.txt")).map(|line| {
+                    // Create a word from the parsed line
+                    Word {
+                        content: line.to_string(),
+                        // TODO: extract the meaning
+                        meaning: String::new(),
+                        class: Class::Demonstrative(Demonstrative {}),
+                    }
+                }),
+            )
+            // Parse the classifiers and add them
+            .chain(
+                defaults_parser::parse_str(include_str!("../classifiers.txt")).map(|line| {
+                    // Split on the first : symbol of the line
+                    let (classifier, meaning) = line
+                        .split_once(":")
+                        .expect(&format!("Symbol ':' not found on line:\n\t{}", line));
+
+                    // Create a word from the parsed line
+                    Word {
+                        content: classifier.to_string(),
+                        meaning: meaning.trim().to_string(),
+                        class: Class::ClassifierNoun(ClassifierNoun {}),
+                    }
+                }),
+            )
+    }
+
+    /// Get a random word belonging to a class.
+    pub fn random_default<'a, R>(rng: &'a mut R, class: Class) -> Result<Word>
+    where
+        R: Rng,
+    {
+        Self::defaults()
+            .filter(|word| word.class == class)
+            .choose(rng)
+            .ok_or(anyhow!("Could not get random word with class {:?}", class))
     }
 }
 
@@ -78,7 +119,7 @@ impl Display for Word {
 /// See:
 /// - https://en.wikipedia.org/wiki/Part_of_speech
 /// - https://en.wikipedia.org/wiki/Vietnamese_grammar
-#[derive(Debug, Clone, PartialEq, Hash)]
+#[derive(Debug, Clone, Hash)]
 pub enum Class {
     /// **Ý**: Italy.
     ProperNoun(ProperNoun),
@@ -98,12 +139,21 @@ pub enum Class {
     Demonstrative(Demonstrative),
 }
 
+impl PartialEq for Class {
+    fn eq(&self, other: &Self) -> bool {
+        // Only compare the variants, not the value
+        std::mem::discriminant(self) == std::mem::discriminant(other)
+    }
+}
+
+impl Eq for Class {}
+
 /// Action, occurance or state of being.
 ///
 /// Tôi **đi**: I go.
 ///
 /// See: https://yourvietnamese.com/learn-vietnamese/vietnamese-verbs/
-#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+#[derive(Debug, Default, Clone, Eq, PartialEq, Hash)]
 pub struct Verb {}
 
 /// Common noun subclasses.
@@ -127,7 +177,7 @@ pub enum CommonNoun {
 /// **Ý**: Italy.
 ///
 /// See: https://en.wikipedia.org/wiki/Vietnamese_grammar#Nouns_and_noun_phrases
-#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+#[derive(Debug, Default, Clone, Eq, PartialEq, Hash)]
 pub struct ProperNoun {}
 
 /// Classify a noun depending on the type of it's referent.
@@ -138,7 +188,7 @@ pub struct ProperNoun {}
 /// See:
 /// - https://en.wikipedia.org/wiki/Vietnamese_grammar#Classifier_position
 /// - https://en.wikipedia.org/wiki/Classifier_(linguistics)
-#[derive(Debug, Clone, PartialEq, Hash)]
+#[derive(Debug, Default, Clone, PartialEq, Hash)]
 pub struct ClassifierNoun {}
 
 /// Noun modifier.
@@ -146,7 +196,7 @@ pub struct ClassifierNoun {}
 /// **Đây** đi chợ, **đấy** có đi không: I'm going to the market, what about you?
 ///
 /// See: https://en.wikipedia.org/wiki/Vietnamese_grammar#Demonstratives
-#[derive(Debug, Clone, PartialEq, Hash)]
+#[derive(Debug, Default, Clone, PartialEq, Hash)]
 pub struct Demonstrative {}
 
 #[cfg(test)]

@@ -31,13 +31,15 @@ fn main() -> Result<()> {
     // Make the output appear
     stdout.flush()?;
 
-    // Write a random sentence.
+    // Write some random sentences.
     let mut rng = rand::thread_rng();
-    let words = Sentence::generate(&mut rng)?;
-    words.into_iter().for_each(|word| {
-        write!(stdout, "{} ", word.to_string());
-    });
-    write!(stdout, "\r\n");
+    for _ in 1..10 {
+        let words = Sentence::generate(&mut rng)?;
+        words.into_iter().for_each(|word| {
+            write!(stdout, "{} ", word.to_string()).expect("Could not write to output")
+        });
+        write!(stdout, "\r\n")?;
+    }
 
     // Initial selection menu
     let _selected = gui::menu(&["Start", "Help", "Exit"])?;
