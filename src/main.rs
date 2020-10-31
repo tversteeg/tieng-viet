@@ -6,7 +6,10 @@ mod gui;
 
 use anyhow::Result;
 use grammar::{sentence::Sentence, Generate};
-use std::io::{stdout, Write};
+use std::{
+    io::{stderr, stdout, Stdout, Write},
+    panic::{self, UnwindSafe},
+};
 use termion::{
     clear::All,
     cursor::{Goto, Hide, Show},
@@ -14,10 +17,7 @@ use termion::{
     screen::{ToAlternateScreen, ToMainScreen},
 };
 
-fn main() -> Result<()> {
-    // Get the standard output stream and go to raw mode
-    let mut stdout = stdout().into_raw_mode()?;
-
+fn program(stdout: &mut Stdout) -> Result<()> {
     // Write the initial message
     write!(
         stdout,
@@ -44,8 +44,36 @@ fn main() -> Result<()> {
     // Initial selection menu
     let _selected = gui::menu(&["Start", "Help", "Exit"])?;
 
-    // Switch back to the main screen
-    write!(stdout, "{}{}", ToMainScreen, Show)?;
-
     Ok(())
+}
+
+fn main() {
+    // Catch panics so we can reset the terminal
+    match panic::catch_unwind(|| {
+        // Get the standard output stream and go to raw mode
+        let mut stdout = stdout()
+            .into_raw_mode()
+            .expect("Could not get raw mode in terminal for stdout");
+
+        program(&mut stdout).unwrap();
+
+        stdout
+    }) {
+        Ok(mut stdout) => {
+            // Reset the terminal to the normal state
+            write!(stdout, "{}{}", ToMainScreen, Show).expect("Could not reset terminal")
+        }
+        Err(err) => {
+            // Re-open stdout with raw mode to close it again
+            let mut stdout = stdout()
+                .into_raw_mode()
+                .expect("Could not get raw mode in terminal for stdout");
+
+            // Reset the terminal to the normal state
+            write!(stdout, "{}{}", ToMainScreen, Show).expect("Could not reset terminal");
+
+            // Write the error after closing
+            eprintln!("{:?}", err);
+        }
+    }
 }
