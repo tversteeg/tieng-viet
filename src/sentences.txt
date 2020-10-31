@@ -1,4 +1,4 @@
 # Allowed sentence structures:
-# NOUN, VERB
+# SUBJECT, OBJECT, VERB
 
-NOUN + VERB
+SUBJECT + VERB + OBJECT

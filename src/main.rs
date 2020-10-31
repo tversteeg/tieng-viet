@@ -6,10 +6,7 @@ mod gui;
 
 use anyhow::Result;
 use grammar::{sentence::Sentence, Generate};
-use std::{
-    io::{stderr, stdout, Stdout, Write},
-    panic::{self, UnwindSafe},
-};
+use std::io::{self, Write};
 use termion::{
     clear::All,
     cursor::{Goto, Hide, Show},
@@ -17,7 +14,15 @@ use termion::{
     screen::{ToAlternateScreen, ToMainScreen},
 };
 
-fn program(stdout: &mut Stdout) -> Result<()> {
+//fn program(stdout: &mut Stdout) -> Result<()> {
+fn main() -> Result<()> {
+    // Re-open stdout with raw mode to close it again
+    let stdout = io::stdout();
+    let mut stdout = stdout
+        .lock()
+        .into_raw_mode()
+        .expect("Could not get raw mode in terminal for stdout");
+
     // Write the initial message
     write!(
         stdout,
@@ -27,7 +32,6 @@ fn program(stdout: &mut Stdout) -> Result<()> {
         Goto(1, 1),
         Hide
     )?;
-
     // Make the output appear
     stdout.flush()?;
 
@@ -40,40 +44,14 @@ fn program(stdout: &mut Stdout) -> Result<()> {
         });
         write!(stdout, "\r\n")?;
     }
+    stdout.flush()?;
 
     // Initial selection menu
     let _selected = gui::menu(&["Start", "Help", "Exit"])?;
 
+    // Reset the terminal
+    write!(stdout, "{}{}", ToMainScreen, Show)?;
+    stdout.flush()?;
+
     Ok(())
-}
-
-fn main() {
-    // Catch panics so we can reset the terminal
-    match panic::catch_unwind(|| {
-        // Get the standard output stream and go to raw mode
-        let mut stdout = stdout()
-            .into_raw_mode()
-            .expect("Could not get raw mode in terminal for stdout");
-
-        program(&mut stdout).unwrap();
-
-        stdout
-    }) {
-        Ok(mut stdout) => {
-            // Reset the terminal to the normal state
-            write!(stdout, "{}{}", ToMainScreen, Show).expect("Could not reset terminal")
-        }
-        Err(err) => {
-            // Re-open stdout with raw mode to close it again
-            let mut stdout = stdout()
-                .into_raw_mode()
-                .expect("Could not get raw mode in terminal for stdout");
-
-            // Reset the terminal to the normal state
-            write!(stdout, "{}{}", ToMainScreen, Show).expect("Could not reset terminal");
-
-            // Write the error after closing
-            eprintln!("{:?}", err);
-        }
-    }
 }

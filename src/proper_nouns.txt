@@ -1,3 +1,7 @@
-Phúc: name
-Linh: name
-Ý: Italy
+# Allowed properties of nouns:
+# SUBJECT, OBJECT
+# Vietnamese follows the Subject-Verb-Object order.
+
+Phúc(SUBJECT): name
+Linh(SUBJECT): name
+Ý(OBJECT): Italy

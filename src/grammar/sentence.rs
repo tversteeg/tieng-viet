@@ -36,7 +36,9 @@ impl Generate for Sentence {
                 .into_iter()
                 // Loop over all items in the structure and map them to the sub-structures
                 .map(|item| match item.to_uppercase().as_str() {
-                    "NOUN" => NounPhrase::generate(rng),
+                    "SUBJECT" => NounPhrase::generate(rng),
+                    // TODO: use the proper noun phrase
+                    "OBJECT" => NounPhrase::generate(rng),
                     "VERB" => VerbPhrase::generate(rng),
                     _ => Err(anyhow!("Unrecognized structure item {}", item)),
                 })

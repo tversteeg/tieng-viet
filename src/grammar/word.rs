@@ -22,46 +22,42 @@ impl Word {
         // Parse the classifiers and add them
         defaults_parser::parse_str(include_str!("../classifiers.txt"))
             .map(|line| {
-                // Split on the first : symbol of the line
-                let (classifier, meaning) = line
-                    .split_once(":")
-                    .expect(&format!("Symbol ':' not found on line:\n\t{}", line));
+                let (word, _, meaning) = defaults_parser::parse_word_line(line);
 
                 // Create a word from the parsed line
                 Word {
-                    content: classifier.to_string(),
-                    meaning: meaning.trim().to_string(),
+                    content: word.to_string(),
+                    meaning: meaning.unwrap_or("").to_string(),
                     class: Class::ClassifierNoun(ClassifierNoun {}),
                 }
             })
             // Parse the proper nouns and add them
             .chain(
                 defaults_parser::parse_str(include_str!("../proper_nouns.txt")).map(|line| {
-                    // Split on the first : symbol of the line
-                    let (noun, meaning) = line
-                        .split_once(":")
-                        .expect(&format!("Symbol ':' not found on line:\n\t{}", line));
+                    let (word, metadata, meaning) = defaults_parser::parse_word_line(line);
+
+                    let proper_noun = ProperNoun {
+                        is_object: metadata.contains(&"OBJECT"),
+                        is_subject: metadata.contains(&"SUBJECT"),
+                    };
 
                     // Create a word from the parsed line
                     Word {
-                        content: noun.to_string(),
-                        meaning: meaning.trim().to_string(),
-                        class: Class::ProperNoun(ProperNoun {}),
+                        content: word.to_string(),
+                        meaning: meaning.unwrap_or("").to_string(),
+                        class: Class::ProperNoun(proper_noun),
                     }
                 }),
             )
             // Parse the verbs and add them
             .chain(
                 defaults_parser::parse_str(include_str!("../verbs.txt")).map(|line| {
-                    // Split on the first : symbol of the line
-                    let (verb, meaning) = line
-                        .split_once(":")
-                        .expect(&format!("Symbol ':' not found on line:\n\t{}", line));
+                    let (word, _, meaning) = defaults_parser::parse_word_line(line);
 
                     // Create a word from the parsed line
                     Word {
-                        content: verb.to_string(),
-                        meaning: meaning.trim().to_string(),
+                        content: word.to_string(),
+                        meaning: meaning.unwrap_or("").to_string(),
                         class: Class::Verb(Verb {}),
                     }
                 }),
@@ -69,11 +65,11 @@ impl Word {
             // Parse the demonstratives and add them
             .chain(
                 defaults_parser::parse_str(include_str!("../demonstratives.txt")).map(|line| {
+                    let (word, _, meaning) = defaults_parser::parse_word_line(line);
                     // Create a word from the parsed line
                     Word {
-                        content: line.to_string(),
-                        // TODO: extract the meaning
-                        meaning: String::new(),
+                        content: word.to_string(),
+                        meaning: meaning.unwrap_or("").to_string(),
                         class: Class::Demonstrative(Demonstrative {}),
                     }
                 }),
@@ -81,15 +77,12 @@ impl Word {
             // Parse the classifiers and add them
             .chain(
                 defaults_parser::parse_str(include_str!("../classifiers.txt")).map(|line| {
-                    // Split on the first : symbol of the line
-                    let (classifier, meaning) = line
-                        .split_once(":")
-                        .expect(&format!("Symbol ':' not found on line:\n\t{}", line));
+                    let (word, _, meaning) = defaults_parser::parse_word_line(line);
 
                     // Create a word from the parsed line
                     Word {
-                        content: classifier.to_string(),
-                        meaning: meaning.trim().to_string(),
+                        content: word.to_string(),
+                        meaning: meaning.unwrap_or("").to_string(),
                         class: Class::ClassifierNoun(ClassifierNoun {}),
                     }
                 }),
@@ -141,8 +134,19 @@ pub enum Class {
 
 impl PartialEq for Class {
     fn eq(&self, other: &Self) -> bool {
-        // Only compare the variants, not the value
-        std::mem::discriminant(self) == std::mem::discriminant(other)
+        match self {
+            Class::ProperNoun(proper_noun) => {
+                // Match proper nouns that are both subject or objects
+                if let Class::ProperNoun(other) = other {
+                    (proper_noun.is_object && other.is_object)
+                        || (proper_noun.is_subject && other.is_subject)
+                } else {
+                    false
+                }
+            }
+            // Only compare the variants, not the value
+            _ => std::mem::discriminant(self) == std::mem::discriminant(other),
+        }
     }
 }
 
@@ -178,7 +182,10 @@ pub enum CommonNoun {
 ///
 /// See: https://en.wikipedia.org/wiki/Vietnamese_grammar#Nouns_and_noun_phrases
 #[derive(Debug, Default, Clone, Eq, PartialEq, Hash)]
-pub struct ProperNoun {}
+pub struct ProperNoun {
+    is_subject: bool,
+    is_object: bool,
+}
 
 /// Classify a noun depending on the type of it's referent.
 ///
