@@ -1,4 +1,4 @@
 # Allowed sentence structures:
-# SUBJECT, OBJECT, VERB
+# SUBJECT, OBJECT, V(erb)P(hrase)
 
-SUBJECT + VERB + OBJECT
+SUBJECT + VP

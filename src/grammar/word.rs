@@ -1,5 +1,6 @@
 use crate::grammar::defaults_parser;
 use anyhow::{anyhow, Result};
+use log::debug;
 use rand::{seq::IteratorRandom, Rng};
 use std::fmt::Display;
 
@@ -94,6 +95,7 @@ impl Word {
     where
         R: Rng,
     {
+        debug!("Word: {:?}", class);
         Self::defaults()
             .filter(|word| word.class == class)
             .choose(rng)
@@ -183,8 +185,8 @@ pub enum CommonNoun {
 /// See: https://en.wikipedia.org/wiki/Vietnamese_grammar#Nouns_and_noun_phrases
 #[derive(Debug, Default, Clone, Eq, PartialEq, Hash)]
 pub struct ProperNoun {
-    is_subject: bool,
-    is_object: bool,
+    pub is_subject: bool,
+    pub is_object: bool,
 }
 
 /// Classify a noun depending on the type of it's referent.

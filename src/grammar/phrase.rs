@@ -1,14 +1,13 @@
 use crate::grammar::{defaults_parser, word::*, Generate};
 use anyhow::{anyhow, Result};
+use log::debug;
 use rand::Rng;
+use std::iter;
 
 /// A phrase with a noun as it's head.
 ///
 /// See: https://en.wikipedia.org/wiki/Noun_phrase
-pub struct NounPhrase {
-    /// The list of words in order that make up the noun-phrase.
-    words: Vec<Word>,
-}
+pub struct NounPhrase {}
 
 impl Generate for NounPhrase {
     type StructureItem = Vec<String>;
@@ -32,6 +31,7 @@ impl Generate for NounPhrase {
     where
         R: Rng,
     {
+        debug!("NP: {:?}", metadata);
         Ok(Box::new(
             structure
                 .into_iter()
@@ -43,7 +43,13 @@ impl Generate for NounPhrase {
                     "CLASSIFIER" => {
                         Word::random_default(rng, Class::ClassifierNoun(ClassifierNoun::default()))
                     }
-                    "HEAD" => Word::random_default(rng, Class::ProperNoun(ProperNoun::default())),
+                    "HEAD" => Word::random_default(
+                        rng,
+                        Class::ProperNoun(ProperNoun {
+                            is_object: metadata.iter().any(|m| *m == "OBJECT"),
+                            is_subject: metadata.iter().any(|m| *m == "SUBJECT"),
+                        }),
+                    ),
                     _ => Err(anyhow!("Unrecognized structure item {}", item)),
                 })
                 // Collect the vector so the random number generator is consumed.
@@ -55,10 +61,7 @@ impl Generate for NounPhrase {
 }
 
 /// A phrase with a verb as it's head.
-pub struct VerbPhrase {
-    /// The list of words in order that make up the verb-phrase.
-    words: Vec<Word>,
-}
+pub struct VerbPhrase {}
 
 impl Generate for VerbPhrase {
     type StructureItem = Vec<String>;
@@ -82,6 +85,7 @@ impl Generate for VerbPhrase {
     where
         R: Rng,
     {
+        debug!("VP: {:?}", metadata);
         Ok(Box::new(
             structure
                 .into_iter()
@@ -91,7 +95,16 @@ impl Generate for VerbPhrase {
                         rng,
                         Class::Verb(Verb::default()),
                     )?]),
-                    "NOUN" => Ok(NounPhrase::generate(rng, metadata.clone())?.collect()),
+                    "NOUN" => Ok(NounPhrase::generate(
+                        rng,
+                        // Put "OBJECT" in the metadata of the noun-phrase
+                        metadata
+                            .clone()
+                            .into_iter()
+                            .chain(iter::once("OBJECT"))
+                            .collect(),
+                    )?
+                    .collect()),
                     _ => Err(anyhow!("Unrecognized structure item {}", item)),
                 })
                 // Collect the vector so the random number generator is consumed.

@@ -5,6 +5,7 @@ use crate::grammar::{
     Generate,
 };
 use anyhow::{anyhow, Result};
+use log::debug;
 use rand::Rng;
 use std::iter;
 
@@ -33,22 +34,23 @@ impl Generate for Sentence {
     where
         R: Rng,
     {
+        debug!("S: {:?}", metadata);
         Ok(Box::new(
             structure
                 .into_iter()
                 // Loop over all items in the structure and map them to the sub-structures
                 .map(|item| match item.to_uppercase().as_str() {
-                    "SUBJECT" => NounPhrase::generate(rng, metadata.clone()),
-                    // TODO: use the proper noun phrase
-                    "OBJECT" => NounPhrase::generate(
+                    // Match both subject & object noun phrases
+                    "SUBJECT" | "OBJECT" => NounPhrase::generate(
                         rng,
+                        // Put "SUBJECT" or "OBJECT" in the metadata
                         metadata
                             .clone()
                             .into_iter()
-                            .chain(iter::once("OBJECT"))
+                            .chain(iter::once(item.to_uppercase().as_str()))
                             .collect(),
                     ),
-                    "VERB" => VerbPhrase::generate(rng, metadata.clone()),
+                    "VP" => VerbPhrase::generate(rng, metadata.clone()),
                     _ => Err(anyhow!("Unrecognized structure item {}", item)),
                 })
                 // Collect the vector so the random number generator is consumed.
@@ -69,6 +71,16 @@ mod tests {
     fn test_allowed() -> Result<()> {
         let allowed = Sentence::allowed_structures().collect::<Vec<_>>();
         assert!(allowed.len() > 0);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_generate() -> Result<()> {
+        let mut rng = rand::thread_rng();
+
+        let words = Sentence::generate(&mut rng, vec![])?.collect::<Vec<_>>();
+        assert!(!words.is_empty());
 
         Ok(())
     }
