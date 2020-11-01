@@ -6,6 +6,7 @@ use crate::grammar::{
 };
 use anyhow::{anyhow, Result};
 use rand::Rng;
+use std::iter;
 
 /// A whole grammatical sentent.
 #[derive(Debug, Clone, Default, PartialEq, Hash)]
@@ -27,6 +28,7 @@ impl Generate for Sentence {
     fn default_words<'a, R>(
         rng: &'a mut R,
         structure: Vec<String>,
+        metadata: Vec<&str>,
     ) -> Result<Box<dyn Iterator<Item = Word>>>
     where
         R: Rng,
@@ -36,10 +38,17 @@ impl Generate for Sentence {
                 .into_iter()
                 // Loop over all items in the structure and map them to the sub-structures
                 .map(|item| match item.to_uppercase().as_str() {
-                    "SUBJECT" => NounPhrase::generate(rng),
+                    "SUBJECT" => NounPhrase::generate(rng, metadata.clone()),
                     // TODO: use the proper noun phrase
-                    "OBJECT" => NounPhrase::generate(rng),
-                    "VERB" => VerbPhrase::generate(rng),
+                    "OBJECT" => NounPhrase::generate(
+                        rng,
+                        metadata
+                            .clone()
+                            .into_iter()
+                            .chain(iter::once("OBJECT"))
+                            .collect(),
+                    ),
+                    "VERB" => VerbPhrase::generate(rng, metadata.clone()),
                     _ => Err(anyhow!("Unrecognized structure item {}", item)),
                 })
                 // Collect the vector so the random number generator is consumed.

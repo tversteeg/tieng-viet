@@ -38,7 +38,7 @@ fn main() -> Result<()> {
     // Write some random sentences.
     let mut rng = rand::thread_rng();
     for _ in 1..10 {
-        let words = Sentence::generate(&mut rng)?;
+        let words = Sentence::generate(&mut rng, vec![])?;
         words.into_iter().for_each(|word| {
             write!(stdout, "{} ", word.to_string()).expect("Could not write to output")
         });

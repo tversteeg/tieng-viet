@@ -27,6 +27,7 @@ impl Generate for NounPhrase {
     fn default_words<'a, R>(
         rng: &'a mut R,
         structure: Self::StructureItem,
+        metadata: Vec<&str>,
     ) -> Result<Box<dyn Iterator<Item = Word>>>
     where
         R: Rng,
@@ -76,6 +77,7 @@ impl Generate for VerbPhrase {
     fn default_words<'a, R>(
         rng: &'a mut R,
         structure: Self::StructureItem,
+        metadata: Vec<&str>,
     ) -> Result<Box<dyn Iterator<Item = Word>>>
     where
         R: Rng,
@@ -89,7 +91,7 @@ impl Generate for VerbPhrase {
                         rng,
                         Class::Verb(Verb::default()),
                     )?]),
-                    "NOUN" => Ok(NounPhrase::generate(rng)?.collect()),
+                    "NOUN" => Ok(NounPhrase::generate(rng, metadata.clone())?.collect()),
                     _ => Err(anyhow!("Unrecognized structure item {}", item)),
                 })
                 // Collect the vector so the random number generator is consumed.

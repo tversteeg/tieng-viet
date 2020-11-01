@@ -19,12 +19,16 @@ pub trait Generate {
     fn default_words<'a, R>(
         rng: &'a mut R,
         structure: Self::StructureItem,
+        metadata: Vec<&str>,
     ) -> Result<Box<dyn Iterator<Item = Word>>>
     where
         R: Rng;
 
     /// Generate a sentence from the allowed structures.
-    fn generate<'a, R>(rng: &'a mut R) -> Result<Box<dyn Iterator<Item = Word>>>
+    fn generate<'a, R>(
+        rng: &'a mut R,
+        metadata: Vec<&str>,
+    ) -> Result<Box<dyn Iterator<Item = Word>>>
     where
         R: Rng,
     {
@@ -34,6 +38,6 @@ pub trait Generate {
             .ok_or(anyhow!("Could not get random structure for sentence"))?;
 
         // Get the default words from the structure.
-        Self::default_words(rng, structure)
+        Self::default_words(rng, structure, metadata)
     }
 }
