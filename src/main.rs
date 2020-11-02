@@ -1,4 +1,4 @@
-// Use the new split_once function for strings
+// For str.split_once
 #![feature(str_split_once)]
 
 mod grammar;

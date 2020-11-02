@@ -1,1 +1,7 @@
-chiếc: sets of
+# Source: https://en.wiktionary.org/wiki/Category:Vietnamese_classifiers
+
+cái: thing
+con: animal
+người: people
+chuyến: travel
+nuoc: country

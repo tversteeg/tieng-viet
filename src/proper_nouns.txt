@@ -1,7 +1,7 @@
 # Allowed properties of nouns:
-# SUBJECT, OBJECT
+# SUBJECT, OBJECT, CLASSIFIER: *classifier*
 # Vietnamese follows the Subject-Verb-Object order.
 
 Phúc(SUBJECT): name
 Linh(SUBJECT): name
-Ý(OBJECT): Italy
+Ý(OBJECT, CLASSIFIER: nuoc): Italy

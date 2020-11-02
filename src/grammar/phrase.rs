@@ -31,18 +31,27 @@ impl Generate for NounPhrase {
     where
         R: Rng,
     {
+        // If the structure contains a classifier use that as the base
+        let classifier = if structure.iter().any(|item| item == "CLASSIFIER") {
+            Some(Word::random_default(
+                rng,
+                Class::ClassifierNoun(ClassifierNoun::default()),
+            )?)
+        } else {
+            None
+        };
+
         debug!("NP: {:?}", metadata);
         Ok(Box::new(
             structure
                 .into_iter()
                 // Loop over all items in the structure and map them to the sub-structures
-                .map(|item| match item.to_uppercase().as_str() {
+                .map(|item| match item.as_str() {
                     "DEMONSTRATIVE" => {
                         Word::random_default(rng, Class::Demonstrative(Demonstrative::default()))
                     }
-                    "CLASSIFIER" => {
-                        Word::random_default(rng, Class::ClassifierNoun(ClassifierNoun::default()))
-                    }
+                    // Can be safely unwrapped because it's defined above
+                    "CLASSIFIER" => Ok(classifier.as_ref().unwrap().clone()),
                     "HEAD" => Word::random_default(
                         rng,
                         Class::ProperNoun(ProperNoun {
@@ -90,7 +99,7 @@ impl Generate for VerbPhrase {
             structure
                 .into_iter()
                 // Loop over all items in the structure and map them to the sub-structures
-                .map(|item| match item.to_uppercase().as_str() {
+                .map(|item| match item.as_str() {
                     "VERB" => Ok(vec![Word::random_default(
                         rng,
                         Class::Verb(Verb::default()),
