@@ -13,4 +13,5 @@ rand = "0.7.3"
 termion = "1.5.5"
 
 [dev-dependencies]
+env_logger = "0.8.1"
 indoc = "1.0.3"

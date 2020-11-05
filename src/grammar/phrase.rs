@@ -57,6 +57,7 @@ impl Generate for NounPhrase {
                         Class::ProperNoun(ProperNoun {
                             is_object: metadata.iter().any(|m| *m == "OBJECT"),
                             is_subject: metadata.iter().any(|m| *m == "SUBJECT"),
+                            classifier: classifier.as_ref().map(|word| word.to_string()),
                         }),
                     ),
                     _ => Err(anyhow!("Unrecognized structure item {}", item)),

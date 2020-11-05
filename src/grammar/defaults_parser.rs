@@ -10,7 +10,7 @@ pub fn parse_str(data: &str) -> impl Iterator<Item = &str> {
 }
 
 /// Parse a line with the format "word(metadata): description"
-pub fn parse_word_line(line: &str) -> (&str, Vec<&str>, Option<&str>) {
+pub fn parse_word_line(line: &str) -> (&str, Vec<(&str, Option<&str>)>, Option<&str>) {
     // Extract the description part :
     let (word_with_metadata, description) = line
         .split_once(":")
@@ -29,7 +29,14 @@ pub fn parse_word_line(line: &str) -> (&str, Vec<&str>, Option<&str>) {
                     .trim_end_matches(metadata_trim)
                     .split("+")
                     .into_iter()
-                    .map(|metadata| metadata.trim())
+                    .map(|metadata| {
+                        // Return the data behind "=" if applicable
+                        if let Some((word, data)) = metadata.split_once("=") {
+                            (word.trim(), Some(data.trim()))
+                        } else {
+                            (metadata.trim(), None)
+                        }
+                    })
                     .collect(),
             )
         })
@@ -66,17 +73,26 @@ mod tests {
 
         let (word, metadata, description) = parse_word_line("word (METADATA)");
         assert_eq!(word, "word");
-        assert_eq!(metadata, vec!["METADATA"]);
+        assert_eq!(metadata, vec![("METADATA", None)]);
         assert!(description.is_none());
 
         let (word, metadata, description) = parse_word_line("word (METADATA + METADATA2)");
         assert_eq!(word, "word");
-        assert_eq!(metadata, vec!["METADATA", "METADATA2"]);
+        assert_eq!(metadata, vec![("METADATA", None), ("METADATA2", None)]);
         assert!(description.is_none());
 
         let (word, metadata, description) = parse_word_line("word (METADATA) : some description");
         assert_eq!(word, "word");
-        assert_eq!(metadata, vec!["METADATA"]);
+        assert_eq!(metadata, vec![("METADATA", None)]);
         assert_eq!(description, Some("some description"));
+
+        let (word, metadata, description) =
+            parse_word_line("word (METADATA = bla + METADATA2 = bla2)");
+        assert_eq!(word, "word");
+        assert_eq!(
+            metadata,
+            vec![("METADATA", Some("bla")), ("METADATA2", Some("bla2"))]
+        );
+        assert!(description.is_none());
     }
 }

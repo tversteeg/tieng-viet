@@ -4,4 +4,4 @@
 
 Phúc(SUBJECT): name
 Linh(SUBJECT): name
-Ý(OBJECT, CLASSIFIER: nuoc): Italy
+Ý(OBJECT + CLASSIFIER = nuoc): Italy

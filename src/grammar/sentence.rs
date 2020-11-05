@@ -67,8 +67,16 @@ mod tests {
     use super::*;
     use anyhow::Result;
 
+    fn init() {
+        // Initialize the logger so we can see the logs when unit tests fail
+        // Can be used with RUST_LOG=tieng_viet=trace cargo test
+        let _ = env_logger::builder().is_test(true).try_init();
+    }
+
     #[test]
     fn test_allowed() -> Result<()> {
+        init();
+
         let allowed = Sentence::allowed_structures().collect::<Vec<_>>();
         assert!(allowed.len() > 0);
 
@@ -77,6 +85,8 @@ mod tests {
 
     #[test]
     fn test_generate() -> Result<()> {
+        init();
+
         let mut rng = rand::thread_rng();
 
         let words = Sentence::generate(&mut rng, vec![])?.collect::<Vec<_>>();

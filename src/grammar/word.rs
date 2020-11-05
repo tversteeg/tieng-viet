@@ -37,9 +37,17 @@ impl Word {
                 defaults_parser::parse_str(include_str!("../proper_nouns.txt")).map(|line| {
                     let (word, metadata, meaning) = defaults_parser::parse_word_line(line);
 
+                    // Find the classifier and set the data if it's found
+                    let classifier = metadata
+                        .iter()
+                        .find(|(key, data)| key.contains("CLASSIFIER"))
+                        .map(|(_, opt_data)| opt_data.map(|data| data.to_string()))
+                        .flatten();
+
                     let proper_noun = ProperNoun {
-                        is_object: metadata.contains(&"OBJECT"),
-                        is_subject: metadata.contains(&"SUBJECT"),
+                        is_object: metadata.contains(&("OBJECT", None)),
+                        is_subject: metadata.contains(&("SUBJECT", None)),
+                        classifier,
                     };
 
                     // Create a word from the parsed line
@@ -187,6 +195,7 @@ pub enum CommonNoun {
 pub struct ProperNoun {
     pub is_subject: bool,
     pub is_object: bool,
+    pub classifier: Option<String>,
 }
 
 /// Classify a noun depending on the type of it's referent.
